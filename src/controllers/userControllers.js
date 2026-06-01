@@ -88,10 +88,12 @@ export const registerUser = async (req, res) => {
         const user = await registerUserService(req.body);
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'secret', { expiresIn: "7d" });
 
-        res.cookie('token', token, {
-            httpOnly: true,
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+       res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000
+});
 // let profilecompleted=false;
 //  if(user.role==="employer"){
 //     const profile=await Company.findOne({createdBy:user._id});
@@ -143,10 +145,12 @@ export const loginUser = async (req, res) => {
 
 export const logoutUser = (req, res) => {
     // We destroy the cookie by replacing the token with an empty string and setting its lifespan to 0!
-    res.cookie("token", "", {
-        httpOnly: true,
-        maxAge: 0
-    });
+   res.cookie("token", "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 0
+});
 
     res.status(200).json({ success: true, message: "Logged out successfully." });
 };

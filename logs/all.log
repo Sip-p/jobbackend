@@ -864,3 +864,6 @@
 {"level":"http","message":"GET /api/jobs/all 200 3485 84.395 ms","timestamp":"2026-06-01T11:05:27.944Z"}
 {"level":"http","message":"GET /api/auth/me 401 63 4.300 ms","timestamp":"2026-06-01T11:06:53.039Z"}
 {"level":"http","message":"GET /api/jobs/all 200 3485 36.679 ms","timestamp":"2026-06-01T11:06:53.085Z"}
+{"level":"http","message":"GET /api/auth/me 401 63 4.076 ms","timestamp":"2026-06-01T12:45:29.097Z"}
+{"level":"http","message":"GET /api/jobs/all 500 87 10025.011 ms","timestamp":"2026-06-01T12:45:39.128Z"}
+{"level":"http","message":"POST /api/auth/signup 400 91 10003.797 ms","timestamp":"2026-06-01T12:46:17.776Z"}
