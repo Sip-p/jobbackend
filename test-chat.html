@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HireSence Real-Time Chat Tester</title>
+    <!-- Import Socket.io Client from CDN -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: #fff; padding: 20px; }
+        .container { display: flex; gap: 20px; }
+        .panel { background: #1e1e1e; padding: 20px; border-radius: 8px; flex: 1; }
+        input, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; border-radius: 4px; border: 1px solid #333; background: #2d2d2d; color: white;}
+        button { background: #4CAF50; cursor: pointer; color: white; border: none; font-weight: bold; }
+        button:hover { background: #45a049; }
+        #chat-box { height: 300px; overflow-y: auto; background: #000; padding: 10px; border-radius: 4px; border: 1px solid #333; margin-top: 10px; font-family: monospace; }
+        .log-msg { color: #aaa; margin-bottom: 5px; }
+        .incoming { color: #4CAF50; }
+        .outgoing { color: #2196F3; }
+    </style>
+</head>
+<body>
+
+    <h2>🟢 Local Chat Tester</h2>
+    <p>Use this page to "act" like the frontend website and test your Socket connection.</p>
+
+    <div class="container">
+        <!-- CONNECTION PANEL -->
+        <div class="panel">
+            <h3>1. Connect</h3>
+            <label>Your JWT Auth Token (Get this from logging in via API):</label>
+            <input type="text" id="jwtToken" placeholder="eyJhbGciOi.......">
+            <button onclick="connectSocket()">Connect to WebSocket</button>
+            <p id="status" style="color: yellow;">Status: Disconnected</p>
+        </div>
+
+        <!-- MESSAGE PANEL -->
+        <div class="panel">
+            <h3>2. Send Message</h3>
+            <label>Receiver's User ID (MongoDB Object ID):</label>
+            <input type="text" id="receiverId" placeholder="65f1234...">
+            
+            <label>Conversation ID (MongoDB Object ID):</label>
+            <input type="text" id="conversationId" placeholder="65f9876...">
+            
+            <label>Message Text:</label>
+            <input type="text" id="messageText" placeholder="Hello, is this job open?">
+            
+            <button onclick="sendMessage()" style="background: #2196F3;">Send Message</button>
+        </div>
+    </div>
+
+    <!-- CHAT LOG -->
+    <div class="panel" style="margin-top: 20px;">
+        <h3>3. Live Logs</h3>
+        <div id="chat-box"></div>
+    </div>
+
+    <script>
+        let socket;
+
+        function logToBox(text, type = "log-msg") {
+            const box = document.getElementById("chat-box");
+            box.innerHTML += `<div class="${type}">[${new Date().toLocaleTimeString()}] ${text}</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function connectSocket() {
+            const token = document.getElementById("jwtToken").value.trim();
+            if (!token) return alert("You need a JWT Token to connect!");
+
+            logToBox("Attempting to connect with token...");
+            
+            // Connect to your local server on port 3000
+            socket = io("http://localhost:3000", {
+                auth: { token: token } // Passes the token to your io.use() Bouncer
+            });
+
+            // Listen for successful connection
+            socket.on("connect", () => {
+                document.getElementById("status").innerText = "Status: Connected! 🟢";
+                document.getElementById("status").style.color = "#4CAF50";
+                logToBox("Successfully connected to Server! Socket ID: " + socket.id);
+            });
+
+            // Listen for Bouncer kicking us out
+            socket.on("connect_error", (err) => {
+                document.getElementById("status").innerText = "Status: Connection Failed 🔴";
+                document.getElementById("status").style.color = "red";
+                logToBox("Error: " + err.message, "outgoing");
+            });
+
+            // Listen for incoming messages from friends
+            socket.on("receive_message", (data) => {
+                logToBox("Received from Friend: " + JSON.stringify(data.message), "incoming");
+            });
+        }
+
+        function sendMessage() {
+            if (!socket || !socket.connected) return alert("Please connect first!");
+
+            const receiverId = document.getElementById("receiverId").value.trim();
+            let conversationId = document.getElementById("conversationId").value.trim();
+            const text = document.getElementById("messageText").value.trim();
+
+            if(!receiverId || !text) return alert("Fill in Receiver ID and Message Text!");
+            if(conversationId === "") conversationId = undefined; // Sends undefined so the backend knows to auto-create
+
+            const payload = { receiverId, conversationId, text };
+            
+            // Emit the "send_message" event to the backend!
+            socket.emit("send_message", payload);
+            logToBox("Sent message: " + text, "outgoing");
+            
+            document.getElementById("messageText").value = "";
+        }
+    </script>
+</body>
+</html>

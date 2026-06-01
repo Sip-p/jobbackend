@@ -9,7 +9,7 @@ const candidateProfileSchema = new mongoose.Schema({
     },
 
     resume: {
-        type: String, // Cloudinary / S3 URL
+        type: String,  
         required: true,
     },
 

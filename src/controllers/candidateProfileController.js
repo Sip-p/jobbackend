@@ -11,8 +11,10 @@ export const getMyProfile = async (req, res) => {
 export const completeMyProfile = async (req, res) => {
     try {
         const profile = await candidateProfileService.completeMyProfile(req.user.id, req.body);
+
         return res.status(200).json({ success: true, profile });
     } catch (error) {
+        console.log("Error completing profile:", error.message);
         return res.status(500).json({ success: false, message: error.message });
     }
 }

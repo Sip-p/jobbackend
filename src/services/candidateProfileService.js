@@ -1,10 +1,12 @@
 import CandidateProfile from "../models/CandidateProfile.js"
 
+// candidateProfileService.js
 export const completeMyProfile = async (userId, profileData) => {
-    const profile = await CandidateProfile.create({
-        userId,
-        ...profileData
-    })
+    const profile = await CandidateProfile.findOneAndUpdate(
+        { userId },
+        { userId, ...profileData },
+        { new: true, upsert: true, runValidators: true }
+    );
     return profile;
 }
 

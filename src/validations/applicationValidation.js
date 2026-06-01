@@ -1,22 +1,13 @@
 import { z } from "zod";
+// ✅ Empty schema is fine for POST with no body validation
+// but needs body wrapper for consistency
 export const applicationCreationSchema = z.object({
-    jobId: z.string().min(1, "Job Id is required"),
-    userId: z.string().min(1, "User Id is required"),
-    status: z.enum(["applied", "accepted", "rejected"]).default("applied"),
-    appliedAt: z.date().default(new Date()),
-
-})
-
-
-
-export const getApplicationByIdSchema = z.object({
-    id: z.string().min(1, "Application Id is required"),
+    body: z.object({}).optional()
 });
-
 export const updateApplicationStatusSchema = z.object({
-    id: z.string().min(1, "Application Id is required"),
-    status: z.enum(["applied", "accepted", "rejected"]),
-    updatedAt: z.date().default(new Date()),
+    body: z.object({  // ✅ add body wrapper
+        status: z.enum(["applied", "accepted", "rejected"])
+    })
 });
 
 export const getAllApplicationsSchema = z.object({

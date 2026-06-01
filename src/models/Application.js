@@ -13,8 +13,8 @@ const applicationSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["pending", "accepted", "rejected"],
-        default: "pending",
+        enum: ["accepted", "rejected", "applied", "not applied"],
+        default: "not applied",
     },
     appliedAt: {
         type: Date,
@@ -22,4 +22,5 @@ const applicationSchema = new mongoose.Schema({
     },
 })
 
+applicationSchema.index({ jobId: 1, applicantId: 1 }, { unique: true })
 export default mongoose.model("Application", applicationSchema)

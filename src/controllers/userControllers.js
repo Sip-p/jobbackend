@@ -1,6 +1,88 @@
-import { registerUserService, loginUserService } from "../services/userService.js";
+import { registerUserService, loginUserService,getCurrentUserService } from "../services/userService.js";
 import jwt from 'jsonwebtoken';
+import Company from "../models/Company.js";
+ import CandidateProfile from "../models/CandidateProfile.js";
+ 
+// export const getCurrentUser = async (req, res) => {
+//     try {
 
+//         const user = await getCurrentUserService(
+//             req.user._id
+//         );
+
+//         let profilecompleted = false;
+
+//         if (user.role === "employer") {
+//             const profile = await Company.findOne({
+//                 createdBy: user._id
+//             });
+
+//             if (profile) {
+//                 profilecompleted = true;
+//             }
+//         }
+
+//         if (user.role === "candidate") {
+//             const profile = await CandidateProfile.findOne({
+//                 userId: user._id
+//             });
+
+//             if (profile) {
+//                 profilecompleted = true;
+//             }
+//         }
+// let company = null;
+
+// if(user.role === "employer" && user.companyId){
+//     company = await Company.findById(user.companyId);
+// }
+//        res.status(200).json({
+//    success:true,
+//    user,
+//    company,
+//    isProfileCompleted:profilecompleted
+// })
+
+//     } catch (error) {
+//         res.status(400).json({
+//             success: false,
+//             message: error.message
+//         });
+//     }
+// };
+
+export const getCurrentUser = async (req, res) => {
+    try {
+        const user = await getCurrentUserService(req.user._id);
+        let profilecompleted = false;
+        let candidateProfile = null;  // ✅ add this
+        let company = null;
+
+        if (user.role === "employer") {
+            const profile = await Company.findOne({ createdBy: user._id });
+            if (profile) profilecompleted = true;
+            if (user.companyId) {
+                company = await Company.findById(user.companyId);
+            }
+        }
+
+        if (user.role === "candidate") {
+            candidateProfile = await CandidateProfile.findOne({ userId: user._id }); // ✅ fetch it
+            if (candidateProfile) profilecompleted = true;
+        }
+
+        res.status(200).json({
+            success: true,
+            user,
+            company,
+            candidateProfile,  // ✅ send it to frontend
+            isProfileCompleted: profilecompleted
+        });
+
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
 export const registerUser = async (req, res) => {
     try {
         const user = await registerUserService(req.body);
@@ -10,8 +92,21 @@ export const registerUser = async (req, res) => {
             httpOnly: true,
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
+// let profilecompleted=false;
+//  if(user.role==="employer"){
+//     const profile=await Company.findOne({createdBy:user._id});
+//     if(profile){
+//         profilecompleted=true;
+//     }
+//  }
+//  if(user.role==="candidate"){
+//     const profile=await CandidateProfile.findOne({userId:user._id});
+//     if(profile){
+//         profilecompleted=true;
+//     }
+//  }
 
-        res.status(201).json({ success: true, message: "User registered successfully", user });
+        res.status(201).json({ success: true, message: "User registered successfully", user,isProfileCompleted: false });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
@@ -26,7 +121,20 @@ export const loginUser = async (req, res) => {
             httpOnly: true,
             maxAge: 7 * 24 * 60 * 60 * 1000
         })
-        res.status(200).json({ success: true, message: "LoginSuccessfull", user })
+        let profilecompleted=false;
+ if(user.role==="employer"){
+    const profile=await Company.findOne({createdBy:user._id});
+    if(profile){
+        profilecompleted=true;
+    }
+ }
+ if(user.role==="candidate"){
+    const profile=await CandidateProfile.findOne({userId:user._id});
+    if(profile){
+        profilecompleted=true;
+    }
+ }
+        res.status(200).json({ success: true, message: "LoginSuccessfull", user, isProfileCompleted: profilecompleted })
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
@@ -42,3 +150,6 @@ export const logoutUser = (req, res) => {
 
     res.status(200).json({ success: true, message: "Logged out successfully." });
 };
+
+
+ 
